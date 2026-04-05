@@ -8,6 +8,7 @@ MongoDB Atlas is used as the database.
 import os
 from pathlib import Path
 import environ
+import dj_database_url
 
 # ─────────────────────────────────────────
 # Build paths inside the project like:
@@ -94,6 +95,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# If running on Vercel (POSTGRES_URL is present), switch to Postgres
+if 'POSTGRES_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        default=os.environ.get('POSTGRES_URL'),
+        conn_max_age=600,
+        ssl_require=True
+    )
 
 # MongoDB Atlas Connection (using pymongo directly)
 MONGO_URI = env('MONGO_URI', default='')
