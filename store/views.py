@@ -470,6 +470,7 @@ def edit_product(request, product_id):
         messages.error(request, 'Invalid product ID!')
         return redirect('admin_panel')
 
+    if request.method == 'POST':
         form = ProductForm(request.POST)
         if form.is_valid():
             # Update fields in MongoDB
