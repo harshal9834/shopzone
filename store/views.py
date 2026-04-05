@@ -416,17 +416,12 @@ def add_product(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
+        form = ProductForm(request.POST)
         if form.is_valid():
             products_col = get_products_collection()
 
-            # Handle Image Upload
-            image_url = '/static/images/default-product.png'
-            if 'image' in request.FILES:
-                image_file = request.FILES['image']
-                fs = FileSystemStorage()
-                filename = fs.save(f'products/{image_file.name}', image_file)
-                image_url = fs.url(filename)
+            # Use the URL entered in the form, or a default fallback image
+            image_url = form.cleaned_data.get('image_url') or '/static/images/default-product.png'
 
             # Create the product document for MongoDB
             product_data = {
@@ -475,26 +470,17 @@ def edit_product(request, product_id):
         messages.error(request, 'Invalid product ID!')
         return redirect('admin_panel')
 
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
+        form = ProductForm(request.POST)
         if form.is_valid():
-            # Handle photo update
+            # Update fields in MongoDB
             update_fields = {
                 'name': form.cleaned_data['name'],
                 'description': form.cleaned_data['description'],
                 'price': float(form.cleaned_data['price']),
                 'category': form.cleaned_data['category'],
                 'stock': form.cleaned_data['stock'],
+                'image_url': form.cleaned_data.get('image_url') or '/static/images/default-product.png',
             }
-
-            if 'image' in request.FILES:
-                image_file = request.FILES['image']
-                fs = FileSystemStorage()
-                filename = fs.save(f'products/{image_file.name}', image_file)
-                update_fields['image_url'] = fs.url(filename)
-            elif not product.get('image_url'):
-                # If no image uploaded AND no existing image, set default
-                update_fields['image_url'] = '/static/images/default-product.png'
 
             # Update the document in MongoDB
             products_col.update_one(

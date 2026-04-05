@@ -96,12 +96,12 @@ class ProductForm(forms.Form):
         ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    image = forms.ImageField(
+    image_url = forms.URLField(
         required=False,
-        label='Product Photo',
-        widget=forms.ClearableFileInput(attrs={
+        label='Product Image URL',
+        widget=forms.URLInput(attrs={
             'class': 'form-control',
-            'accept': 'image/*'
+            'placeholder': 'Paste a link to an image (e.g. https://example.com/item.jpg)'
         })
     )
     stock = forms.IntegerField(

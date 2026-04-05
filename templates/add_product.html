@@ -33,7 +33,7 @@
 
       <!-- Product Form Card -->
       <div class="product-detail-card fade-in">
-        <form method="POST" id="productForm" enctype="multipart/form-data">
+        <form method="POST" id="productForm">
           {% csrf_token %}
 
           <!-- Product Name -->
@@ -82,17 +82,17 @@
             {{ form.description }}
           </div>
 
-          <!-- Product Photo -->
+          <!-- Product Photo URL -->
           <div class="mb-4">
-            <label class="form-label" for="{{ form.image.id_for_label }}">
-              <i class="bi bi-camera me-1"></i> Product Photo (Take or Upload)
+            <label class="form-label" for="{{ form.image_url.id_for_label }}">
+              <i class="bi bi-image me-1"></i> Product Image URL *
             </label>
-            {{ form.image }}
+            {{ form.image_url }}
             <div class="text-muted small mt-1">
-              Select an image file (JPG, PNG) or take a photo if on mobile.
+              For best results, use a high-quality image link from the web.
             </div>
-            {% if form.image.errors %}
-              <div class="text-danger small mt-1">{{ form.image.errors }}</div>
+            {% if form.image_url.errors %}
+              <div class="text-danger small mt-1">{{ form.image_url.errors }}</div>
             {% endif %}
           </div>
 
@@ -127,25 +127,25 @@
 
 {% block extra_scripts %}
 <script>
-// Live image preview when file is selected
-const fileInput = document.getElementById('{{ form.image.id_for_label }}');
+// Live image preview when URL is entered/pasted
+const urlInput = document.getElementById('{{ form.image_url.id_for_label }}');
 const previewContainer = document.getElementById('imagePreviewContainer');
 const previewImg = document.getElementById('imagePreview');
 
-if (fileInput) {
-  fileInput.addEventListener('change', function() {
-    const file = this.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImg.src = e.target.result;
-        previewContainer.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
+if (urlInput) {
+  const updatePreview = () => {
+    const url = urlInput.value.trim();
+    if (url) {
+      previewImg.src = url;
+      previewContainer.style.display = 'block';
     } else {
       previewContainer.style.display = 'none';
     }
-  });
+  };
+
+  urlInput.addEventListener('input', updatePreview);
+  urlInput.addEventListener('change', updatePreview);
+  urlInput.addEventListener('paste', () => setTimeout(updatePreview, 100));
 
   // Show existing image if in edit mode (from MongoDB image_url)
   {% if product.image_url %}
