@@ -1,133 +1,149 @@
 {% extends 'base.html' %}
-{% comment %}
-  cart.html - Shopping Cart Page
-  ================================
-  Shows all items the user has added to cart.
-  Users can remove items or proceed to checkout.
-{% endcomment %}
+{% load static %}
 
-{% block title %}My Cart - ShopZone{% endblock %}
+{% block title %}Shopping Cart - ShopZone{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="bg-light min-vh-100 py-5">
+<div class="container">
 
-  <!-- Page Header -->
-  <div class="page-header mb-5">
-    <h1 class="fw-bold" style="font-size: 3.5rem; letter-spacing: -2px;">Your <span style="color: var(--accent);">Bag</span></h1>
-    <p class="text-muted fs-5">
-      {{ cart_count }} item{{ cart_count|pluralize }} ready for checkout
-    </p>
-  </div>
-
-  {% if cart_items %}
-  <div class="row gap-4 flex-lg-row flex-column-reverse">
-
-    <!-- Cart Items List -->
-    <div class="col-lg-8">
-      {% for item in cart_items %}
-      <div class="cart-item fade-in">
-
-        <!-- Product Image -->
-        <div class="cart-item-img" style="background: white; border: 1px solid var(--border);">
-          <img src="{{ item.product.image_url|default:'/static/images/default-product.png' }}" 
-               alt="{{ item.product.name }}"
-               style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-               onerror="this.src='/static/images/default-product.png';">
+  <div class="row g-4">
+    <!-- 🛒 LEFT: SHOPPING CART -->
+    <div class="col-lg-9">
+      <div class="bg-white p-4 p-md-5 rounded-3 shadow-sm border">
+        <div class="d-flex justify-content-between align-items-end border-bottom pb-3 mb-4">
+          <h2 class="fw-bold mb-0">Shopping Cart</h2>
+          <span class="text-muted d-none d-md-block">Price</span>
         </div>
 
-        <!-- Product Info -->
-        <div class="flex-grow-1">
-          <a href="{% url 'product_detail' item.product.id %}"
-             style="text-decoration: none;">
-            <h5 class="fw-bold mb-1 text-dark">{{ item.product.name }}</h5>
-          </a>
-          <span class="product-category-badge">{{ item.product.category|default:"General" }}</span>
-          <div class="mt-2">
-            <span class="text-muted small">Unit Price: </span>
-            <span class="fw-bold" style="color: var(--accent);">₹{{ item.product.price }}</span>
+        {% if cart_items %}
+          {% for item in cart_items %}
+          <div class="row mb-4 pb-4 border-bottom g-3 align-items-center">
+            <!-- Product Image -->
+            <div class="col-4 col-md-2">
+              <div class="border rounded-2 p-1 bg-light">
+                <img src="{{ item.product.image_url|default:'/static/images/default-product.png' }}" 
+                     class="img-fluid rounded-1" alt="{{ item.product.name }}">
+              </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-8 col-md-8">
+              <h5 class="fw-bold mb-1">
+                <a href="{% url 'product_detail' item.product.id %}" class="text-dark text-decoration-none hover-blue">
+                  {{ item.product.name }}
+                </a>
+              </h5>
+              <div class="text-success small mb-2">In Stock</div>
+              <div class="small text-muted mb-3 d-md-none">Unit Price: ₹{{ item.product.price|floatformat:2 }}</div>
+              
+              <div class="d-flex align-items-center flex-wrap gap-3 mt-2">
+                <!-- Quantity Selector -->
+                <form action="{% url 'update_cart_quantity' item.cart_id %}" method="POST" class="d-flex align-items-center gap-2">
+                  {% csrf_token %}
+                  <div class="input-group input-group-sm" style="width: 130px;">
+                    <label class="input-group-text bg-light border-end-0 small text-muted">Qty:</label>
+                    <select name="quantity" class="form-select border-start-0 shadow-none bg-light" onchange="this.form.submit()">
+                      {% for i in "12345678910"|make_list %}
+                        <option value="{{ i }}" {% if item.quantity|stringformat:"s" == i %}selected{% endif %}>{{ i }}</option>
+                      {% endfor %}
+                      {% if item.quantity > 10 %}
+                        <option value="{{ item.quantity }}" selected>{{ item.quantity }}</option>
+                      {% endif %}
+                    </select>
+                  </div>
+                </form>
+
+                <div class="vr mx-1 opacity-25 d-none d-sm-block"></div>
+
+                <!-- Delete Link -->
+                <form action="{% url 'remove_from_cart' item.cart_id %}" method="POST" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-link link-secondary small p-0 text-decoration-none border-0 bg-transparent">Delete</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="col-12 col-md-2 text-md-end">
+              <span class="fs-5 fw-bold">₹{{ item.subtotal|floatformat:2 }}</span>
+            </div>
           </div>
-        </div>
+          {% endfor %}
 
-        <!-- Quantity & Subtotal -->
-        <div class="text-end" style="min-width: 120px;">
-          <div class="text-muted small mb-1" style="letter-spacing: 1px; text-transform: uppercase;">Subtotal</div>
-          <div class="fw-bold fs-4">₹{{ item.subtotal|floatformat:2 }}</div>
-          <div class="text-muted small mt-1">
-            Qty: {{ item.quantity }}
+          <!-- Subtotal in main card -->
+          <div class="text-end pt-2">
+            <h5 class="fw-normal">
+              Subtotal ({{ cart_count }} item{{ cart_count|pluralize }}): 
+              <span class="fw-bold">₹{{ total_price|floatformat:2 }}</span>
+            </h5>
           </div>
-        </div>
 
-        <!-- Remove Button -->
-        <div>
-          <form method="POST" action="{% url 'remove_from_cart' item.cart_id %}"
-                onsubmit="return confirm('Remove this item from cart?')">
-            {% csrf_token %}
-            <button type="submit" class="btn-danger-custom" style="padding: 8px 16px; font-size: 0.85rem;">
-              <i class="bi bi-trash3"></i>
-            </button>
-          </form>
-        </div>
-
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- Order Summary -->
-    <div class="col-lg">
-      <div class="cart-summary-card">
-        <h4 class="fw-bold mb-4">Order Summary</h4>
-
-        <div class="d-flex justify-content-between mb-3">
-          <span class="text-muted">Subtotal</span>
-          <span class="fw-bold">₹{{ total_price|floatformat:2 }}</span>
-        </div>
-        <div class="d-flex justify-content-between mb-3">
-          <span class="text-muted">Delivery</span>
-          <span class="fw-bold" style="color: var(--accent);">
-            {% if total_price >= 499 %}FREE{% else %}₹49{% endif %}
-          </span>
-        </div>
-        <hr style="border-color: var(--border);">
-        <div class="d-flex justify-content-between mb-4 mt-2">
-          <span class="fw-bold fs-4">Total</span>
-          <div class="cart-total fw-bold" style="font-size: 2.5rem; color: var(--primary);">
-            ₹{{ total_price|floatformat:2 }}
+        {% else %}
+          <div class="text-center py-5">
+            <div class="mb-4"><i class="bi bi-cart-x display-1 text-muted opacity-25"></i></div>
+            <h4>Your ShopZone Cart is empty.</h4>
+            <p class="text-muted">Check your Saved for later items or continue shopping.</p>
+            <a href="{% url 'home' %}" class="btn btn-warning rounded-pill px-5 fw-bold mt-3 shadow-sm border-0" 
+               style="background-color: var(--amazon-yellow); color: #111;">
+               Start Shopping
+            </a>
           </div>
-        </div>
-
-        {% if free_delivery_diff > 0 %}
-        <div class="mb-4 p-3" style="background: rgba(237, 207, 93, 0.1); border-radius: 8px; border: 1px solid rgba(237, 207, 93, 0.3);">
-          <small class="text-dark">
-            <i class="bi bi-truck me-2"></i> Add ₹{{ free_delivery_diff|floatformat:0 }} more for FREE delivery!
-          </small>
-        </div>
         {% endif %}
-
-        <a href="{% url 'checkout' %}" class="btn-success-custom w-100 text-center py-3">
-          <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
-        </a>
-
-        <a href="{% url 'home' %}" class="btn-secondary-custom w-100 text-center py-3 mt-3">
-          <i class="bi bi-arrow-left me-2"></i>Continue Shopping
-        </a>
       </div>
     </div>
 
-  </div>
+    <!-- 🏷️ RIGHT: SUMMARY SIDEBAR -->
+    {% if cart_items %}
+    <div class="col-lg-3">
+      <div class="bg-white p-4 rounded-3 shadow-sm border sticky-top" style="top: 100px; z-index: 100;">
+        <div class="d-flex align-items-center text-success small mb-3">
+          <i class="bi bi-patch-check-fill me-2 fs-5"></i>
+          <span>Your order qualifies for FREE Shipping</span>
+        </div>
+        
+        <h4 class="fw-normal mb-3">
+          Subtotal ({{ cart_count }} items): 
+          <div class="fw-bold mt-1">₹{{ total_price|floatformat:2 }}</div>
+        </h4>
 
-  {% else %}
-  <!-- Empty Cart State -->
-  <div class="empty-state">
-    <div class="empty-state-icon" style="font-size: 5rem; color: var(--primary);"><i class="bi bi-cart-x"></i></div>
-    <h3 class="mb-3">Your cart is empty</h3>
-    <p class="text-muted mb-4">
-      Looks like you haven't added anything to your cart yet.
-    </p>
-    <a href="{% url 'home' %}" class="btn-primary-custom" style="padding: 14px 40px; font-size: 1rem;">
-      <i class="bi bi-shop me-2"></i>Start Shopping
-    </a>
-  </div>
-  {% endif %}
+        <div class="form-check mb-4">
+          <input class="form-check-input shadow-none" type="checkbox" id="isGift">
+          <label class="form-check-label small" for="isGift">
+            This order contains a gift
+          </label>
+        </div>
 
+        <a href="{% url 'checkout' %}" class="btn btn-warning w-100 rounded-pill py-3 fw-bold shadow-sm border-0 mb-3" 
+           style="background-color: var(--amazon-yellow); color: #111;">
+          Proceed to Checkout
+        </a>
+
+        <div class="accordion accordion-flush" id="accordionCart">
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed px-0 small text-primary fw-semibold shadow-none border-0 bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEMI">
+                EMI Available
+              </button>
+            </h2>
+            <div id="collapseEMI" class="accordion-collapse collapse" data-bs-parent="#accordionCart">
+              <div class="accordion-body px-0 pt-0 small text-muted">
+                Your order is eligible for No Cost EMI on select cards.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
 </div>
+</div>
+
+<style>
+  .hover-blue:hover { color: #007185 !important; text-decoration: underline !important; }
+  .btn-warning:hover { background-color: #f7ca00 !important; }
+  .amz-dropdown-list a:hover { color: #c45500 !important; text-decoration: underline; }
+</style>
 {% endblock %}

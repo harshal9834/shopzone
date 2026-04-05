@@ -1,137 +1,231 @@
 {% extends 'base.html' %}
-{% comment %}
-  checkout.html - Checkout Page
-{% endcomment %}
+{% load static %}
 
 {% block title %}Checkout - ShopZone{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="bg-light min-vh-100 py-4">
+<div class="container" style="max-width: 1150px;">
 
-  <div class="page-header">
-    <h1><i class="bi bi-credit-card me-3 text-gradient"></i>Checkout</h1>
-    <p class="text-muted mt-2">Complete your order</p>
+  <!-- Amazon Checkout Header (Optional/Minimal) -->
+  <div class="d-flex align-items-center justify-content-between mb-4 px-2">
+    <h1 class="h3 fw-normal mb-0">Checkout ({{ items|length }} item{{ items|length|pluralize }})</h1>
+    <a href="{% url 'cart' %}" class="text-decoration-none small fw-semibold text-primary">
+      <i class="bi bi-lock-fill text-muted me-1"></i>Secure Checkout
+    </a>
   </div>
 
-  <div class="row g-5">
+  <div class="row g-4">
+    <!-- 🚚 MAIN CHECKOUT COLUMN (Left) -->
+    <div class="col-lg-8">
+      
+      <form method="POST" id="checkoutForm">
+        {% csrf_token %}
 
-    <!-- Delivery Details Form -->
-    <div class="col-lg-7">
-      <div class="product-detail-card mb-4">
-        <h4 class="fw-bold mb-4">
-          <i class="bi bi-geo-alt me-2 text-gradient"></i>Delivery Details
-        </h4>
-
-        <form method="POST" action="{% url 'checkout' %}" id="checkoutForm">
-          {% csrf_token %}
-
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">First Name</label>
-              <input type="text" class="form-control" name="first_name"
-                     placeholder="Rahul" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Last Name</label>
-              <input type="text" class="form-control" name="last_name"
-                     placeholder="Sharma" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Email Address</label>
-              <input type="email" class="form-control" name="email"
-                     value="{{ request.user.email }}"
-                     placeholder="rahul@example.com" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Phone Number</label>
-              <input type="tel" class="form-control" name="phone"
-                     placeholder="+91 9876543210" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Delivery Address</label>
-              <textarea class="form-control" name="address" rows="3"
-                        placeholder="House No, Street, Area..." required></textarea>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">City</label>
-              <input type="text" class="form-control" name="city"
-                     placeholder="Mumbai" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">State</label>
-              <input type="text" class="form-control" name="state"
-                     placeholder="Maharashtra" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">PIN Code</label>
-              <input type="text" class="form-control" name="pincode"
-                     placeholder="400001" required>
+        <!-- STEP 1: DELIVERY ADDRESS -->
+        <div class="bg-white rounded-3 shadow-sm border mb-3 overflow-hidden">
+          <div class="p-4 border-bottom bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">1. Select a delivery address</h5>
+            <a href="{% url 'add_address' %}" class="small text-primary text-decoration-none">Add new address</a>
+          </div>
+          <div class="p-4">
+            <div class="row g-3">
+              {% if addresses %}
+                {% for addr in addresses %}
+                <div class="col-12">
+                  <div class="address-item-amz p-3 border rounded-3 position-relative {% if addr.is_default %}border-warning bg-warning-subtle{% endif %}" 
+                       onclick="selectAddress(this)">
+                    <div class="form-check">
+                      <input class="form-check-input shadow-none" type="radio" name="selected_address" 
+                             id="addr-{{ addr.id }}" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %}>
+                      <label class="form-check-label w-100" for="addr-{{ addr.id }}">
+                        <span class="fw-bold d-block">{{ addr.address_line }}</span>
+                        <span class="small text-muted">{{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}</span>
+                        <span class="d-block mt-2 small text-primary fw-semibold cursor-pointer">Edit address | Add delivery instructions</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="col-12">
+                  <div class="alert alert-info border-0 rounded-4 p-4 text-center">
+                    <i class="bi bi-geo-alt-fill fs-3 mb-2 d-block"></i>
+                    <p class="mb-3">No addresses found in your account.</p>
+                    <a href="{% url 'add_address' %}" class="btn btn-dark rounded-pill px-4">Add Address</a>
+                  </div>
+                </div>
+              {% endif %}
             </div>
           </div>
+        </div>
 
-          <!-- Payment Method (Display Only) -->
-          <div class="mt-4">
-            <h5 class="fw-bold mb-3">
-              <i class="bi bi-wallet2 me-2 text-gradient"></i>Payment Method
-            </h5>
-            <div class="p-4" style="background: rgba(67,233,123,0.1); border-radius: 12px; border: 1px solid rgba(67,233,123,0.3);">
-              <div class="d-flex align-items-center gap-3">
-                <input type="radio" class="form-check-input" checked id="cod" name="payment" value="cod">
-                <label for="cod" class="fw-bold" style="color: var(--accent);">
-                  💵 Cash on Delivery (COD)
-                </label>
+        <!-- STEP 2: PAYMENT METHOD -->
+        <div class="bg-white rounded-3 shadow-sm border mb-3 overflow-hidden">
+          <div class="p-4 border-bottom bg-white">
+            <h5 class="fw-bold mb-0 text-dark">2. Select a payment method</h5>
+          </div>
+          <div class="p-4">
+            <div class="list-group list-group-flush border rounded-3 overflow-hidden">
+              <!-- UPI Option -->
+              <label class="list-group-item list-group-item-action p-4 border-bottom address-item-amz cursor-pointer">
+                <div class="d-flex align-items-center gap-3">
+                  <input class="form-check-input shadow-none fs-5" type="radio" name="payment_method" value="upi" checked>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="fw-bold">UPI (Simulated QR)</span>
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height: 20px;" alt="UPI">
+                    </div>
+                    <small class="text-muted d-block mt-1">GPay, PhonePe, Paytm or any UPI App</small>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Card Option -->
+              <label class="list-group-item list-group-item-action p-4 border-bottom address-item-amz cursor-pointer">
+                <div class="d-flex align-items-center gap-3">
+                  <input class="form-check-input shadow-none fs-5" type="radio" name="payment_method" value="card">
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="fw-bold">Credit or Debit Card</span>
+                      <div class="d-flex gap-1">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" style="height: 12px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" style="height: 12px;">
+                      </div>
+                    </div>
+                    <small class="text-muted d-block mt-1">ShopZone accepts all major credit & debit cards</small>
+                  </div>
+                </div>
+              </label>
+
+              <!-- COD Option -->
+              <label class="list-group-item list-group-item-action p-4 address-item-amz cursor-pointer">
+                <div class="d-flex align-items-center gap-3">
+                  <input class="form-check-input shadow-none fs-5" type="radio" name="payment_method" value="cod">
+                  <div class="flex-grow-1">
+                    <span class="fw-bold">Cash on Delivery / Pay on Delivery</span>
+                    <small class="text-muted d-block mt-1">Pay with Cash/UPI on delivery</small>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: REVIEW ITEMS AND DELIVERY -->
+        <div class="bg-white rounded-3 shadow-sm border mb-3 overflow-hidden">
+          <div class="p-4 border-bottom bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">3. Review items and delivery</h5>
+            <a href="{% url 'cart' %}" class="small text-primary text-decoration-none">Review Cart</a>
+          </div>
+          <div class="p-4">
+            <div class="bg-light-subtle border rounded-3 p-3 mb-4 d-flex align-items-center gap-3">
+              <i class="bi bi-truck fs-4 text-success"></i>
+              <div>
+                <span class="fw-bold text-success d-block small">Arriving {{ est_delivery|date:"D, M d" }}</span>
+                <span class="small text-muted">Standard Delivery (Guaranteed by ShopZone)</span>
               </div>
-              <small class="text-muted d-block mt-2 ms-4">
-                Pay when your order arrives at your doorstep.
-              </small>
             </div>
+
+            {% for item in items %}
+            <div class="d-flex gap-3 {% if not forloop.last %}mb-4 pb-4 border-bottom{% endif %}">
+              <div class="bg-light border rounded-2 p-1 text-center" style="width: 80px; height: 80px; flex-shrink: 0;">
+                <img src="/static/images/default-product.png" class="img-fluid" style="max-height: 100%;">
+              </div>
+              <div class="flex-grow-1">
+                <span class="fw-bold d-block">{{ item.name }}</span>
+                <span class="small text-muted d-block mb-1">Quantity: {{ item.quantity }}</span>
+                <span class="fw-bold text-danger">₹{{ item.price|floatformat:2 }}</span>
+              </div>
+            </div>
+            {% endfor %}
           </div>
+        </div>
 
-          <!-- Place Order Button -->
-          <button type="submit" class="btn-success-custom w-100 py-3 mt-4" style="font-size: 1.1rem;">
-            <i class="bi bi-bag-check me-2"></i>Place Order — ₹{{ total_price|floatformat:2 }}
+        <div class="bg-white rounded-3 shadow-sm border p-4 text-center mt-4 d-lg-none">
+          <button type="submit" class="btn btn-warning w-100 rounded-pill py-3 fw-bold shadow-sm border-0 mb-2" 
+                  style="background-color: var(--amazon-yellow); color: #111;"
+                  {% if not addresses %}disabled{% endif %}>
+            Place your order
           </button>
-          <a href="{% url 'cart' %}" class="btn-secondary-custom w-100 py-3 mt-3 text-center">
-            <i class="bi bi-arrow-left me-2"></i>Back to Cart
-          </a>
+          <small class="text-muted">By placing your order, you agree to ShopZone's privacy notice and conditions of use.</small>
+        </div>
 
-        </form>
-      </div>
+      </form>
     </div>
 
-    <!-- Order Summary -->
-    <div class="col-lg-5">
-      <div class="cart-summary-card">
-        <h4 class="fw-bold mb-4">Your Order</h4>
+    <!-- 🏷️ RIGHT: SUMMARY SIDEBAR -->
+    <div class="col-lg-4">
+      <div class="bg-white p-4 rounded-3 shadow-sm border sticky-top" style="top: 100px; z-index: 100;">
+        
+        <button type="button" onclick="document.getElementById('checkoutForm').submit()" 
+                class="btn btn-warning w-100 rounded-pill py-3 fw-bold shadow-sm border-0 mb-3" 
+                style="background-color: var(--amazon-yellow); color: #111;"
+                {% if not addresses %}disabled{% endif %}>
+          Place your order
+        </button>
+        
+        <p class="text-center small text-muted mb-4 px-3">
+          By placing your order, you agree to ShopZone's <a href="#" class="text-decoration-none">privacy notice</a> and <a href="#" class="text-decoration-none">conditions of use</a>.
+        </p>
 
-        {% for item in cart_items %}
-        <div class="d-flex justify-content-between align-items-center mb-3 pb-3"
-             style="border-bottom: 1px solid var(--border);">
-          <div class="d-flex align-items-center gap-2">
-            <span style="font-size: 1.5rem;">📦</span>
-            <div>
-              <div class="fw-bold" style="font-size: 0.9rem;">{{ item.product.name }}</div>
-              <div class="text-muted" style="font-size: 0.8rem;">Qty: {{ item.quantity }}</div>
-            </div>
-          </div>
-          <span class="fw-bold" style="color: var(--accent);">₹{{ item.subtotal|floatformat:2 }}</span>
-        </div>
-        {% endfor %}
+        <hr class="opacity-10 mb-4">
 
-        <div class="d-flex justify-content-between mb-2">
-          <span class="text-muted">Delivery</span>
-          <span class="fw-bold" style="color: var(--accent);">
-            {% if total_price >= 499 %}FREE{% else %}₹49{% endif %}
-          </span>
+        <h5 class="fw-bold mb-4">Order Summary</h5>
+        
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">Items:</span>
+          <span>₹{{ total_price|floatformat:2 }}</span>
         </div>
-        <hr style="border-color: var(--border);">
-        <div class="d-flex justify-content-between">
-          <span class="fw-bold fs-5">Total Payable</span>
-          <div class="cart-total">₹{{ total_price|floatformat:2 }}</div>
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">Delivery:</span>
+          <span class="text-success fw-bold">{% if delivery_charge == 0 %}₹0.00{% else %}₹{{ delivery_charge|floatformat:2 }}{% endif %}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3 small">
+          <span class="text-muted">Total before tax:</span>
+          <span>₹{{ total_price|add:delivery_charge|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom small">
+          <span class="text-muted">Estimated tax (GST 18%):</span>
+          <span>₹{{ gst_amount|floatformat:2 }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2 mb-4">
+          <h4 class="fw-bold mb-0 text-danger">Order Total:</h4>
+          <h4 class="fw-bold mb-0 text-danger">₹{{ final_total|floatformat:2 }}</h4>
+        </div>
+
+        <div class="p-3 rounded-2 bg-light border-start border-4 border-warning small">
+          <h6 class="fw-bold mb-1">How are delivery costs calculated?</h6>
+          <p class="mb-0 text-muted">ShopZone prime members get FREE delivery on orders over ₹499.</p>
         </div>
       </div>
     </div>
 
   </div>
 </div>
+</div>
+
+<style>
+  .address-item-amz { transition: all 0.2s ease; border: 1px solid #ddd; }
+  .address-item-amz:hover { background-color: #f7faff; border-color: #007185; }
+  .address-item-amz input:checked + label { color: #000; font-weight: bold; }
+  .cursor-pointer { cursor: pointer; }
+  .bg-warning-subtle { background-color: #fff9e6 !important; }
+</style>
+
+<script>
+  function selectAddress(element) {
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) {
+      radio.checked = true;
+      // Remove highlight from all
+      document.querySelectorAll('.address-item-amz').forEach(el => {
+        el.classList.remove('border-warning', 'bg-warning-subtle');
+      });
+      // Add highlight to current
+      element.classList.add('border-warning', 'bg-warning-subtle');
+    }
+  }
+</script>
 {% endblock %}

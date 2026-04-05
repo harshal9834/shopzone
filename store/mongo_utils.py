@@ -45,3 +45,28 @@ def get_products_collection():
 def get_cart_collection():
     """Returns the 'cart' collection (like a table for cart items)."""
     return get_db()['cart']
+
+
+def get_profiles_collection():
+    """Returns the 'user_profiles' collection."""
+    return get_db()['user_profiles']
+
+
+def get_addresses_collection():
+    """Returns the 'addresses' collection."""
+    return get_db()['addresses']
+
+
+def get_orders_collection():
+    """Returns the 'orders' collection."""
+    return get_db()['orders']
+
+
+def get_payments_collection():
+    """Returns the 'payments' collection."""
+    return get_db()['payments']
+
+
+def get_tracking_collection():
+    """Returns the 'tracking_logs' collection."""
+    return get_db()['tracking_logs']

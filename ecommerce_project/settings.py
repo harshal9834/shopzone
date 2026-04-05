@@ -33,11 +33,13 @@ ALLOWED_HOSTS = ['*']  # Allow all hosts (for development & Vercel)
 # Tell Django that Vercel is using HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# CSRF Trusted Origins for Vercel
+# CSRF Trusted Origins for Vercel & Local Dev
 # This is REQUIRED for POST requests (like Delete/Add Product) to work on HTTPS
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://*.now.sh',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
 ]
 
 # ─────────────────────────────────────────
@@ -68,7 +70,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Custom Middleware for profile forcing
+    'store.middleware.ProfileCompletionMiddleware',
 ]
+
+# Google Maps API Key (from .env)
+GOOGLE_MAPS_API_KEY = env('GOOGLE_MAPS_API_KEY', default='')
 
 ROOT_URLCONF = 'ecommerce_project.urls'
 
@@ -87,6 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.cart_count_processor',  # Custom cart counter
             ],
         },
     },

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Details #{{ order_id }} - ShopZone{% endblock %}
+
+{% block extra_head %}
+<style>
+    .timeline { position: relative; padding: 20px 0; list-style: none; }
+    .timeline::before { content: ''; position: absolute; top: 0; bottom: 0; width: 2px; background: #e9ecef; left: 10px; }
+    .timeline-item { position: relative; margin-bottom: 20px; padding-left: 40px; }
+    .timeline-marker { position: absolute; left: 0; width: 20px; height: 20px; background: #fff; border: 2px solid var(--primary); border-radius: 50%; z-index: 1; }
+    .timeline-item.active .timeline-marker { background: var(--accent); border-color: var(--accent); transform: scale(1.3); box-shadow: 0 0 10px rgba(237, 207, 93, 0.5); }
+    .timeline-item.completed .timeline-marker { background: var(--primary); border-color: var(--primary); }
+    .timeline-content { background: #f8f9fa; padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); }
+
+    /* Horizontal Tracking Bar */
+    .track-container { display: flex; justify-content: space-between; position: relative; margin: 40px 0 60px; }
+    .track-container::before { content: ''; position: absolute; height: 4px; background: #eee; width: 100%; top: 50%; transform: translateY(-50%); z-index: 0; }
+    .track-step { position: relative; z-index: 1; text-align: center; width: 100px; }
+    .track-icon { width: 40px; height: 40px; background: #fff; border: 2px solid #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; font-size: 1.2rem; transition: all 0.3s ease; }
+    .track-step.active .track-icon { background: var(--accent); border-color: var(--accent); color: var(--primary); transform: scale(1.2); }
+    .track-step.completed .track-icon { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .track-step p { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin: 0; color: #999; }
+    .track-step.active p, .track-step.completed p { color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row g-4">
+        <!-- Main Tracking Section -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-5 p-4 p-md-5 mb-4 overflow-hidden">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-5 gap-3">
+                    <div>
+                        <h2 class="fw-bold mb-1">Order #{{ order_id|slice:":8"|upper }}</h2>
+                        <p class="text-muted small mb-0">Purchased on {{ order.created_at|date:"d M Y, h:i A" }}</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-dark px-4 py-2 rounded-pill fs-6">
+                            {{ order.status|upper }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Modern Tracking Timeline -->
+                <div class="track-container d-none d-md-flex">
+                    {% for stage in stages %}
+                    <div class="track-step 
+                        {% if forloop.counter0 == current_index %}active
+                        {% elif forloop.counter0 < current_index %}completed{% endif %}">
+                        <div class="track-icon">
+                            {% if forloop.counter0 < current_index %}
+                                <i class="bi bi-check-lg"></i>
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </div>
+                        <p>{{ stage }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <h4 class="fw-bold mb-4">Detailed Timeline</h4>
+                <ul class="timeline">
+                    {% if tracking_logs %}
+                        {% for log in tracking_logs %}
+                        <li class="timeline-item {% if forloop.first %}active{% else %}completed{% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="fw-bold mb-1">{{ log.status }}</h6>
+                                    <small class="text-muted">{{ log.timestamp|date:"d M, h:i A" }}</small>
+                                </div>
+                                <p class="mb-0 text-muted small">{{ log.message }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="timeline-item active">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold mb-1">Order Placed</h6>
+                                <p class="mb-0 text-muted small">Your order has been placed successfully.</p>
+                            </div>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <hr class="my-5 opacity-25">
+
+                <h4 class="fw-bold mb-4">Items Ordered</h4>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Item</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr class="border-bottom">
+                                <td class="py-3">
+                                    <span class="fw-bold d-block">{{ item.name }}</span>
+                                    <span class="text-muted small">Price: ₹{{ item.price }}</span>
+                                </td>
+                                <td class="text-center fw-semibold">{{ item.quantity }}</td>
+                                <td class="text-end fw-bold">₹{{ item.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{% url 'download_invoice' order_id %}" class="btn btn-dark rounded-pill py-3 px-5 shadow-sm fs-5">
+                       <i class="bi bi-file-earmark-pdf-fill me-2"></i> Download Invoice (PDF)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary & Shipping -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-5 p-4 mb-4">
+                <h4 class="fw-bold mb-4">Shipping Address</h4>
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 px-3">
+                        <i class="bi bi-geo-alt-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <p class="fw-bold mb-1">{{ address.address_line }}</p>
+                        <p class="text-muted small mb-0">{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                        <p class="text-muted small fw-bold mt-2">Country: {{ address.country }}</p>
+                    </div>
+                </div>
+                {% if address.latitude and address.longitude %}
+                <a href="https://www.google.com/maps?q={{ address.latitude }},{{ address.longitude }}" 
+                   target="_blank" class="btn btn-outline-dark w-100 rounded-pill btn-sm mt-4">
+                    <i class="bi bi-geo-alt me-1"></i> Track on Map
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-5 p-4 bg-dark text-white">
+                <h4 class="fw-bold mb-4">Payment Summary</h4>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="opacity-75">Subtotal</span>
+                    <span class="fw-semibold">₹{{ subtotal|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="opacity-75">Delivery</span>
+                    <span class="text-success fw-bold">₹{{ order.delivery_charge }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="opacity-75">GST (18%)</span>
+                    <span class="fw-semibold">₹{{ order.gst_amount|floatformat:2 }}</span>
+                </div>
+                <hr class="border-secondary mb-4">
+                <div class="d-flex justify-content-between">
+                    <span class="h5 fw-bold mb-0">Total</span>
+                    <span class="h5 fw-bold mb-0 text-white">₹{{ order.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

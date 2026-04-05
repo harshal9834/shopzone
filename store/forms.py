@@ -112,3 +112,66 @@ class ProductForm(forms.Form):
             'placeholder': 'e.g., 50'
         })
     )
+
+# ─────────────────────────────────────────
+# USER PROFILE FORM
+# Used to complete user profile details.
+# ─────────────────────────────────────────
+class UserProfileForm(forms.Form):
+    full_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'placeholder': 'Full Name'})
+    )
+    phone_number = forms.CharField(
+        max_length=15,
+        widget=forms.TextInput(attrs={'placeholder': 'Phone Number'})
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+
+# ─────────────────────────────────────────
+# ADDRESS FORM
+# Used to add delivery addresses.
+# Includes fields for Google Maps integration.
+# ─────────────────────────────────────────
+class AddressForm(forms.Form):
+    address_line = forms.CharField(
+        max_length=255,
+        widget=forms.TextInput(attrs={'placeholder': 'House No., Building Name, Street...'})
+    )
+    city = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'placeholder': 'City'})
+    )
+    state = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'placeholder': 'State'})
+    )
+    country = forms.CharField(
+        max_length=100,
+        initial='India',
+        widget=forms.TextInput(attrs={'placeholder': 'Country'})
+    )
+    pincode = forms.CharField(
+        max_length=10,
+        widget=forms.TextInput(attrs={'placeholder': 'PIN Code'})
+    )
+    
+    # Hidden fields for Latitude & Longitude (set by Google Maps JS)
+    latitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    longitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    
+    is_default = forms.BooleanField(
+        required=False,
+        label='Mark as default delivery address'
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if not isinstance(field.widget, forms.HiddenInput):
+                field.widget.attrs['class'] = 'form-control'

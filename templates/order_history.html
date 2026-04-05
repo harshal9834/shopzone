@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History - ShopZone{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="fw-bold mb-0">My Orders</h2>
+        <span class="badge bg-light text-muted px-3 py-2 rounded-pill fs-6">{{ orders|length }} Total Orders</span>
+    </div>
+
+    {% if orders %}
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 overflow-hidden position-relative">
+                <div class="row align-items-center">
+                    <!-- Order Items Preview -->
+                    <div class="col-md-5">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light rounded-circle p-3 text-center" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-box-fill fs-3 text-primary"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">
+                                    {% if order.items|length > 1 %}
+                                        {{ order.items.0.name }} + {{ order.items|length|add:"-1" }} more
+                                    {% else %}
+                                        {{ order.items.0.name }}
+                                    {% endif %}
+                                </h5>
+                                <p class="text-muted small mb-0">Ordered on: {{ order.created_at|date:"d M Y, h:i A" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-3 text-center my-3 my-md-0">
+                        <span class="badge px-4 py-2 rounded-pill fw-bold fs-6
+                            {% if order.status == 'Delivered' %}bg-success-subtle text-success
+                            {% elif order.status == 'Placed' %}bg-primary-subtle text-primary
+                            {% elif order.status == 'Shipped' %}bg-warning-subtle text-warning
+                            {% else %}bg-info-subtle text-info{% endif %}">
+                            <i class="bi bi-lightning-fill me-1"></i> {{ order.status|upper }}
+                        </span>
+                        <p class="small text-muted mt-2 mb-0">Status: {{ order.payment_status }}</p>
+                    </div>
+
+                    <!-- Total & Actions -->
+                    <div class="col-md-4 text-end">
+                        <p class="h4 fw-bold mb-3 text-gradient">₹{{ order.total_amount|floatformat:2 }}</p>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-dark rounded-pill py-2 px-4 shadow-sm">
+                                <i class="bi bi-info-circle me-1"></i> Details
+                            </a>
+                            <a href="{% url 'download_invoice' order.id %}" class="btn btn-outline-dark rounded-pill py-2 px-3">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-5 shadow-sm mt-5">
+        <i class="bi bi-bag-x opacity-25" style="font-size: 5rem;"></i>
+        <h4 class="mt-4 fw-bold">No orders yet!</h4>
+        <p class="text-muted mb-4">Start shopping and your order history will appear here.</p>
+        <a href="{% url 'home' %}" class="btn-primary-custom px-5 py-3 rounded-pill fs-5 shadow">Browse Products</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

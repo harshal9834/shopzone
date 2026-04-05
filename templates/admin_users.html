@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Users - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex bg-light min-vh-100">
+  <!-- 🏢 ADMIN SIDEBAR -->
+  {% include 'admin_sidebar.html' %}
+
+  <!-- 📊 MAIN WORKSPACE -->
+  <main class="flex-grow-1 p-4 p-md-5" style="max-height: 100vh; overflow-y: auto;">
+    
+    <!-- Header -->
+    <div class="dashboard-hero shadow-sm mb-5">
+      <div class="dashboard-hero-content d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <h1 class="fw-bold mb-1">Customer <span class="text-primary">Directory</span></h1>
+          <p class="text-muted mb-0">View registered users, profile statuses, and engagement metrics.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-warning rounded-pill border-0 px-4 py-2 fw-bold" style="background-color: var(--amazon-yellow);" onclick="window.location.reload()">
+                <i class="bi bi-person-check me-2"></i>Sync Profiles
+            </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+          <div class="bg-primary bg-opacity-10 text-primary rounded-4 p-3 d-inline-block mx-auto mb-3">
+            <i class="bi bi-people fs-3"></i>
+          </div>
+          <p class="text-muted small fw-bold text-uppercase mb-1">Total Users</p>
+          <h3 class="fw-bold mb-0">{{ users|length }}</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+          <div class="bg-success bg-opacity-10 text-success rounded-4 p-3 d-inline-block mx-auto mb-3">
+            <i class="bi bi-shield-lock-fill fs-3"></i>
+          </div>
+          <p class="text-muted small fw-bold text-uppercase mb-1">Auth System</p>
+          <h3 class="fw-bold mb-0">Django Default</h3>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+          <div class="bg-warning bg-opacity-10 text-warning rounded-4 p-3 d-inline-block mx-auto mb-3">
+            <i class="bi bi-hdd-network fs-3"></i>
+          </div>
+          <p class="text-muted small fw-bold text-uppercase mb-1">Database Store</p>
+          <h3 class="fw-bold mb-0">MongoDB Atlas</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Table Card -->
+    <div class="widget-card border-0 shadow-sm p-0 overflow-hidden">
+        <div class="p-4 border-bottom bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">Customer Database</h5>
+            <div class="input-group input-group-sm w-auto">
+                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-start-0" placeholder="Search customers...">
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small text-uppercase fw-bold">
+                        <th class="px-4 py-3">Full Name</th>
+                        <th class="py-3">User ID</th>
+                        <th class="py-3">Phone Number</th>
+                        <th class="py-3">Verification</th>
+                        <th class="px-4 py-3 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                    {{ u.full_name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <span class="fw-bold d-block">{{ u.full_name }}</span>
+                                    <small class="text-muted">Registered Customer</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3"><span class="small font-monospace text-muted">{{ u.user_id|truncatechars:15 }}</span></td>
+                        <td class="py-3 fw-semibold">{{ u.phone_number }}</td>
+                        <td class="py-3">
+                            {% if u.is_complete %}
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success border-opacity-10 px-3">
+                                Verified Profile
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning border-opacity-10 px-3">
+                                Incomplete Profile
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <a href="#" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold opacity-75">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

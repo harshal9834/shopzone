@@ -1,0 +1,27 @@
+<!-- 🏢 ADMIN SIDEBAR (Unified Component) -->
+<aside class="admin-sidebar d-none d-lg-flex">
+    <div class="mb-5 px-3">
+        <h5 class="fw-bold text-white mb-0">ShopZone Admin</h5>
+        <small class="text-white opacity-50">Control Center</small>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Overview
+        </a>
+        <a href="{% url 'admin_panel' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}">
+            <i class="bi bi-box-seam"></i> Products
+        </a>
+        <a href="{% url 'admin_orders' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_orders' %}active{% endif %}">
+            <i class="bi bi-cart-check"></i> Orders
+        </a>
+        <a href="{% url 'admin_users' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+            <i class="bi bi-people"></i> Users
+        </a>
+        
+        <div class="mt-auto pt-5 border-top border-secondary border-opacity-25 opacity-75">
+            <a href="{% url 'home' %}" class="sidebar-link">
+                <i class="bi bi-arrow-left-circle"></i> Back to Shop
+            </a>
+        </div>
+    </nav>
+</aside>
