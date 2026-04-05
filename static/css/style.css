@@ -1462,3 +1462,25 @@ body {
   background: #f7ca00;
   border-color: #f2c200;
 }
+
+/* Amazon "Buy Now" Button (Orange) */
+.amz-buy-btn {
+  background: #ffa41c;
+  border-color: #ff8f00;
+  color: #0f1111;
+  border-radius: 20px;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  width: 100%;
+  border: 1px solid #c45500;
+  box-shadow: 0 2px 5px rgba(213,217,217,0.5);
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.amz-buy-btn:hover {
+  background: #fa8200;
+  border-color: #e67e00;
+  color: #0f1111;
+}

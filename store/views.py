@@ -219,6 +219,35 @@ def add_to_cart(request, product_id):
     return redirect(next_url)
 
 
+@login_required
+def buy_now(request, product_id):
+    """
+    Adds a product to the shopping cart and redirects to checkout.
+    """
+    cart_col = get_cart_collection()
+
+    # Check if existing in cart
+    existing = cart_col.find_one({
+        'user_id': request.user.id,
+        'product_id': product_id
+    })
+
+    if existing:
+        cart_col.update_one(
+            {'_id': existing['_id']},
+            {'$inc': {'quantity': 1}}
+        )
+    else:
+        cart_col.insert_one({
+            'user_id': request.user.id,
+            'product_id': product_id,
+            'quantity': 1
+        })
+    
+    messages.success(request, 'Adding to purchase list...')
+    return redirect('checkout')
+
+
 # ══════════════════════════════════════════════════════════════
 # ❌ REMOVE FROM CART VIEW
 # Removes a product from the user's cart.

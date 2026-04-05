@@ -178,14 +178,20 @@
             </div>
           </div>
 
-          <!-- Amazon Action Button -->
+          <!-- Amazon Action Buttons -->
           {% if request.user.is_authenticated %}
             <a href="{% url 'add_to_cart' product.id %}" class="btn amz-add-btn text-center text-decoration-none d-block">
               Add to Cart
             </a>
+            <a href="{% url 'buy_now' product.id %}" class="btn amz-buy-btn text-center text-decoration-none d-block">
+              Buy Now
+            </a>
           {% else %}
             <a href="{% url 'login' %}?next=/" class="btn amz-add-btn text-center text-decoration-none d-block">
-              Log in to buy
+              Add to Cart
+            </a>
+            <a href="{% url 'login' %}?next=/" class="btn amz-buy-btn text-center text-decoration-none d-block">
+              Buy Now
             </a>
           {% endif %}
 
