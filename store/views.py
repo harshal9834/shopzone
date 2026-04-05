@@ -533,8 +533,8 @@ def delete_product(request, product_id):
             if result.deleted_count:
                 messages.success(request, '🗑️ Product deleted successfully!')
             else:
-                messages.error(request, 'Product not found!')
-        except Exception:
-            messages.error(request, 'Error deleting product.')
+                messages.error(request, 'Product not found in database! ❌')
+        except Exception as e:
+            messages.error(request, f'❌ Database Error: Could not delete product. (Check MongoDB Connection)')
 
     return redirect('admin_panel')
