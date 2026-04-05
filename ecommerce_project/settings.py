@@ -29,6 +29,13 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-fallback-key-change-me')
 DEBUG = env.bool('DEBUG', default=True)
 ALLOWED_HOSTS = ['*']  # Allow all hosts (for development & Vercel)
 
+# CSRF Trusted Origins for Vercel
+# This is REQUIRED for POST requests (like Delete/Add Product) to work on HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://*.now.sh',
+]
+
 # ─────────────────────────────────────────
 # INSTALLED APPS
 # These are the apps Django uses.
