@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% comment %}
+  home.html - Homepage / Product Listing
+  =========================================
+  This page shows all products from MongoDB.
+  Extends base.html (inherits navbar, footer, CSS).
+  
+  VIVA TIP:
+    - extends tag = use base.html as the layout
+    - block ...endblock = fill in this section
+    - products = data passed from views.py
+    - for product in products = loop through products
+{% endcomment %}
+
+{% block title %}ShopZone - Shop Electronics, Clothing & More{% endblock %}
+
+{% block content %}
+
+<!-- ─── HERO SECTION ─── -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <h1 class="hero-title fw-bold mb-4">
+          Upgrade Your<br>
+          <span style="color: var(--accent);">Everyday</span> Style
+        </h1>
+        <p class="hero-subtitle mb-5">
+          Curated collection of high-quality essentials designed for modern living. 
+          Enjoy free shipping on all orders over ₹499.
+        </p>
+
+        <!-- Search Form -->
+        <div class="search-wrapper ms-0 mb-0">
+          <form method="GET" action="{% url 'home' %}" class="d-flex gap-2">
+            <div class="position-relative flex-grow-1">
+              <input
+                type="text"
+                name="search"
+                class="form-control search-input ps-5"
+                placeholder="Search products..."
+                value="{{ search_query }}"
+                style="height: 60px; border-radius: 12px; background: white !important;"
+              />
+              <i class="bi bi-search position-absolute" style="left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            </div>
+            <button type="submit" class="btn-primary-custom" style="height: 60px; border-radius: 12px; padding: 0 40px;">Find</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="position-relative">
+          <!-- Background Decorative Box -->
+          <div style="background: var(--accent); width: 100%; height: 500px; border-radius: 40px; transform: rotate(-3deg); position: absolute; z-index: -1;"></div>
+          
+          <!-- Professional Image Carousel -->
+          <div class="hero-carousel-wrapper" id="heroCarousel">
+            <!-- Slide 1: Electronics -->
+            <div class="carousel-slide active">
+              <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=2071&auto=format&fit=crop" class="carousel-img-hero" alt="Apple MacBook">
+              <div class="carousel-caption">
+                <div>
+                  <div class="caption-title">Premium Tech</div>
+                  <div class="caption-subtitle">Next-gen Laptops & Gear</div>
+                </div>
+                <div class="caption-badge"><i class="bi bi-cpu"></i></div>
+              </div>
+            </div>
+
+            <!-- Slide 2: Fashion -->
+            <div class="carousel-slide">
+              <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" class="carousel-img-hero" alt="Fashion Store">
+              <div class="carousel-caption">
+                <div>
+                  <div class="caption-title">Curated Styles</div>
+                  <div class="caption-subtitle">Latest Seasonal Threads</div>
+                </div>
+                <div class="caption-badge"><i class="bi bi-tag"></i></div>
+              </div>
+            </div>
+
+            <!-- Slide 3: Smart Living -->
+            <div class="carousel-slide">
+              <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=2000&auto=format&fit=crop" class="carousel-img-hero" alt="Modern Living">
+              <div class="carousel-caption">
+                <div>
+                  <div class="caption-title">Modern Living</div>
+                  <div class="caption-subtitle">Smart Home & Decor</div>
+                </div>
+                <div class="caption-badge"><i class="bi bi-house"></i></div>
+              </div>
+            </div>
+
+            <!-- Dot Indicators -->
+            <div class="carousel-dots" id="carouselDots">
+              <div class="carousel-dot active" data-index="0"></div>
+              <div class="carousel-dot" data-index="1"></div>
+              <div class="carousel-dot" data-index="2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRODUCTS SECTION ─── -->
+<section class="products-section">
+  <div class="container">
+
+    <!-- Section Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+      <div>
+        <h2 class="section-title mb-1">
+          {% if search_query %}
+            Results for "{{ search_query }}"
+          {% elif category_filter %}
+             <i class="bi bi-tag me-2"></i> {{ category_filter }}
+          {% else %}
+             <i class="bi bi-grid-3x3-gap me-2"></i> All Products
+          {% endif %}
+        </h2>
+        <p class="section-subtitle mb-0">
+          {{ products|length }} product{{ products|length|pluralize }} found
+        </p>
+      </div>
+
+      <!-- Category Filter -->
+      {% if categories %}
+      <form method="GET" action="{% url 'home' %}" class="d-flex gap-2 align-items-center">
+        <select name="category" class="form-select" style="width: auto;" onchange="this.form.submit()">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>
+              {{ cat }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if search_query %}
+          <input type="hidden" name="search" value="{{ search_query }}">
+        {% endif %}
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="row g-4">
+      {% for product in products %}
+      <div class="col-sm-6 col-lg-4 col-xl-3 fade-in">
+        <div class="product-card">
+
+          <!-- Product Image -->
+          <a href="{% url 'product_detail' product.id %}" class="product-card-img-wrapper">
+            <img src="{{ product.image_url|default:'/static/images/default-product.png' }}" 
+                 alt="{{ product.name }}"
+                 class="product-card-img" 
+                 onerror="this.src='/static/images/default-product.png';">
+          </a>
+
+          <!-- Product Info -->
+          <div class="product-card-body">
+            <span class="product-category-badge">
+              {{ product.category|default:"General" }}
+            </span>
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-price">
+              <span class="currency">₹</span>{{ product.price }}
+            </div>
+            {% if product.stock <= 5 and product.stock > 0 %}
+              <small class="text-warning d-block mb-2">⚠️ Only {{ product.stock }} left!</small>
+            {% endif %}
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="product-card-footer">
+            <a href="{% url 'product_detail' product.id %}" class="btn-secondary-custom btn-details">
+              <i class="bi bi-eye me-1"></i>Details
+            </a>
+            {% if request.user.is_authenticated %}
+              <a href="{% url 'add_to_cart' product.id %}" class="btn-primary-custom btn-add">
+                <i class="bi bi-cart-plus me-1"></i>Add
+              </a>
+            {% else %}
+              <a href="{% url 'login' %}?next=/" class="btn-primary-custom btn-add">
+                <i class="bi bi-lock me-1"></i>Login
+              </a>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-state-icon">🔍</div>
+      <h3 class="mb-3">No products found</h3>
+      <p class="text-muted mb-4">
+        {% if search_query %}
+          No results for "{{ search_query }}". Try a different search term.
+        {% else %}
+          No products available yet. 
+          {% if request.user.is_staff %}
+            <a href="{% url 'add_product' %}" class="text-gradient">Add the first product!</a>
+          {% endif %}
+        {% endif %}
+      </p>
+      {% if search_query %}
+        <a href="{% url 'home' %}" class="btn-secondary-custom">Clear Search</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ─── FEATURES STRIP ─── -->
+<section class="py-5" style="background: white; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-6 col-md-3">
+        <div class="p-3">
+          <div class="mb-3" style="font-size: 2rem; color: var(--primary);"><i class="bi bi-truck"></i></div>
+          <h6 class="fw-bold mb-1">Fast Delivery</h6>
+          <p class="text-muted small mb-0">Across India</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 border-start">
+          <div class="mb-3" style="font-size: 2rem; color: var(--primary);"><i class="bi bi-shield-lock"></i></div>
+          <h6 class="fw-bold mb-1">Secure Check</h6>
+          <p class="text-muted small mb-0">100% Protection</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 border-start">
+          <div class="mb-3" style="font-size: 2rem; color: var(--primary);"><i class="bi bi-arrow-repeat"></i></div>
+          <h6 class="fw-bold mb-1">Easy Return</h6>
+          <p class="text-muted small mb-0">Hassle Free</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 border-start">
+          <div class="mb-3" style="font-size: 2rem; color: var(--primary);"><i class="bi bi-headset"></i></div>
+          <h6 class="fw-bold mb-1">Help Center</h6>
+          <p class="text-muted small mb-0">Friendly Support</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('heroCarousel');
+    if (!wrapper) return;
+
+    const slides = wrapper.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+    let currentIndex = 0;
+    let intervalId = null;
+
+    function showSlide(index) {
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+        
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        currentIndex = index;
+    }
+
+    function nextSlide() {
+        let next = (currentIndex + 1) % slides.length;
+        showSlide(next);
+    }
+
+    function startAutoPlay() {
+        if (!intervalId) {
+            intervalId = setInterval(nextSlide, 2000);
+        }
+    }
+
+    function stopAutoPlay() {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
+
+    // Dot Interactions
+    dots.forEach((dot, idx) => {
+        dot.addEventListener('click', () => {
+            showSlide(idx);
+            stopAutoPlay();
+            startAutoPlay();
+        });
+    });
+
+    // Hover Behavior
+    wrapper.addEventListener('mouseenter', stopAutoPlay);
+    wrapper.addEventListener('mouseleave', startAutoPlay);
+
+    // Initial Start
+    startAutoPlay();
+});
+</script>
+{% endblock %}

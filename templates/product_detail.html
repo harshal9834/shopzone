@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% comment %}
+  product_detail.html - Single Product Page
+  ===========================================
+  Shows full details of one product.
+  Users can add to cart from here.
+{% endcomment %}
+
+{% block title %}{{ product.name }} - ShopZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb" style="background: transparent;">
+      <li class="breadcrumb-item">
+        <a href="{% url 'home' %}" class="text-muted text-decoration-none">Home</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'home' %}?category={{ product.category }}" class="text-muted text-decoration-none">
+          {{ product.category }}
+        </a>
+      </li>
+      <li class="breadcrumb-item active text-muted">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Main Product Section -->
+  <div class="row g-5">
+
+    <!-- Product Image -->
+    <div class="col-lg-5">
+      <img src="{{ product.image_url|default:'/static/images/default-product.png' }}" 
+           alt="{{ product.name }}"
+           class="product-detail-img"
+           onerror="this.src='/static/images/default-product.png';">
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-lg-7">
+      <div class="product-detail-card p-0 border-0 bg-transparent">
+
+        <!-- Category Badge -->
+        <span class="product-category-badge mb-3 d-inline-block" style="background: white; border: 1px solid var(--border);">
+          {{ product.category|default:"General" }}
+        </span>
+
+        <!-- Product Name -->
+        <h1 class="fw-bold mb-3" style="font-size: 3.5rem; letter-spacing: -2px; line-height: 1.1;">
+          {{ product.name }}
+        </h1>
+
+        <!-- Price -->
+        <div class="mb-5">
+          <div class="product-price fw-bold" style="font-size: 3rem; color: var(--primary);">
+            <span class="currency">₹</span>{{ product.price }}
+          </div>
+          <div class="text-muted" style="font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">
+            📦 Free Shipping Included
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-5">
+          <h6 class="fw-bold mb-3 text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;">
+            The Details
+          </h6>
+          <p class="fs-5" style="color: var(--text-primary); line-height: 1.8; font-weight: 400;">
+            {{ product.description }}
+          </p>
+        </div>
+
+        <!-- Stock & Actions -->
+        <div class="d-flex flex-column gap-4">
+          <div>
+            {% if product.stock %}
+              {% if product.stock > 5 %}
+                <span class="badge bg-success-subtle text-success p-2 px-3 rounded-pill fw-bold" style="font-size: 0.85rem;">
+                  <i class="bi bi-check-circle-fill me-2"></i>In Stock
+                </span>
+              {% elif product.stock > 0 %}
+                <span class="badge bg-warning-subtle text-warning-emphasis p-2 px-3 rounded-pill fw-bold" style="font-size: 0.85rem;">
+                  <i class="bi bi-lightning-charge-fill me-2"></i>Limited: {{ product.stock }} left
+                </span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger p-2 px-3 rounded-pill fw-bold" style="font-size: 0.85rem;">
+                  <i class="bi bi-x-circle-fill me-2"></i>Sold Out
+                </span>
+              {% endif %}
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-3 mt-2">
+            {% if request.user.is_authenticated %}
+              <a href="{% url 'add_to_cart' product.id %}" class="btn-primary-custom py-3 px-5" style="border-radius: 16px;">
+                Add to Bag
+              </a>
+            {% else %}
+              <a href="{% url 'login' %}?next=/product/{{ product.id }}/" class="btn-primary-custom py-3 px-5" style="border-radius: 16px;">
+                Sign In to Order
+              </a>
+            {% endif %}
+            <a href="{% url 'home' %}" class="btn-secondary-custom py-3 px-4" style="border-radius: 16px; border: 1px solid var(--border);">
+              <i class="bi bi-arrow-left"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  {% if related_products %}
+  <section class="mt-5">
+    <h2 class="section-title mb-4">Related Products</h2>
+    <div class="row g-4">
+      {% for rp in related_products %}
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="product-card">
+          <a href="{% url 'product_detail' rp.id %}" class="product-card-img-wrapper">
+            <img src="{{ rp.image_url|default:'/static/images/default-product.png' }}" 
+                 alt="{{ rp.name }}"
+                 class="product-card-img" 
+                 onerror="this.src='/static/images/default-product.png';">
+          </a>
+          <div class="product-card-body">
+            <span class="product-category-badge">{{ rp.category }}</span>
+            <h3 class="product-name">{{ rp.name }}</h3>
+            <div class="product-price">₹{{ rp.price }}</div>
+          </div>
+          <div class="product-card-footer">
+            <a href="{% url 'product_detail' rp.id %}" class="btn-secondary-custom btn-details" style="font-size: 0.85rem;">
+              <i class="bi bi-eye"></i> Details
+            </a>
+            <a href="{% url 'add_to_cart' rp.id %}" class="btn-primary-custom btn-add" style="font-size: 0.85rem;">
+              <i class="bi bi-cart-plus"></i> Add
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

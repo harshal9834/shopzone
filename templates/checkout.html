@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% comment %}
+  checkout.html - Checkout Page
+{% endcomment %}
+
+{% block title %}Checkout - ShopZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="page-header">
+    <h1><i class="bi bi-credit-card me-3 text-gradient"></i>Checkout</h1>
+    <p class="text-muted mt-2">Complete your order</p>
+  </div>
+
+  <div class="row g-5">
+
+    <!-- Delivery Details Form -->
+    <div class="col-lg-7">
+      <div class="product-detail-card mb-4">
+        <h4 class="fw-bold mb-4">
+          <i class="bi bi-geo-alt me-2 text-gradient"></i>Delivery Details
+        </h4>
+
+        <form method="POST" action="{% url 'checkout' %}" id="checkoutForm">
+          {% csrf_token %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-control" name="first_name"
+                     placeholder="Rahul" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-control" name="last_name"
+                     placeholder="Sharma" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" name="email"
+                     value="{{ request.user.email }}"
+                     placeholder="rahul@example.com" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" name="phone"
+                     placeholder="+91 9876543210" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Delivery Address</label>
+              <textarea class="form-control" name="address" rows="3"
+                        placeholder="House No, Street, Area..." required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" name="city"
+                     placeholder="Mumbai" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">State</label>
+              <input type="text" class="form-control" name="state"
+                     placeholder="Maharashtra" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">PIN Code</label>
+              <input type="text" class="form-control" name="pincode"
+                     placeholder="400001" required>
+            </div>
+          </div>
+
+          <!-- Payment Method (Display Only) -->
+          <div class="mt-4">
+            <h5 class="fw-bold mb-3">
+              <i class="bi bi-wallet2 me-2 text-gradient"></i>Payment Method
+            </h5>
+            <div class="p-4" style="background: rgba(67,233,123,0.1); border-radius: 12px; border: 1px solid rgba(67,233,123,0.3);">
+              <div class="d-flex align-items-center gap-3">
+                <input type="radio" class="form-check-input" checked id="cod" name="payment" value="cod">
+                <label for="cod" class="fw-bold" style="color: var(--accent);">
+                  💵 Cash on Delivery (COD)
+                </label>
+              </div>
+              <small class="text-muted d-block mt-2 ms-4">
+                Pay when your order arrives at your doorstep.
+              </small>
+            </div>
+          </div>
+
+          <!-- Place Order Button -->
+          <button type="submit" class="btn-success-custom w-100 py-3 mt-4" style="font-size: 1.1rem;">
+            <i class="bi bi-bag-check me-2"></i>Place Order — ₹{{ total_price|floatformat:2 }}
+          </button>
+          <a href="{% url 'cart' %}" class="btn-secondary-custom w-100 py-3 mt-3 text-center">
+            <i class="bi bi-arrow-left me-2"></i>Back to Cart
+          </a>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-lg-5">
+      <div class="cart-summary-card">
+        <h4 class="fw-bold mb-4">Your Order</h4>
+
+        {% for item in cart_items %}
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-3"
+             style="border-bottom: 1px solid var(--border);">
+          <div class="d-flex align-items-center gap-2">
+            <span style="font-size: 1.5rem;">📦</span>
+            <div>
+              <div class="fw-bold" style="font-size: 0.9rem;">{{ item.product.name }}</div>
+              <div class="text-muted" style="font-size: 0.8rem;">Qty: {{ item.quantity }}</div>
+            </div>
+          </div>
+          <span class="fw-bold" style="color: var(--accent);">₹{{ item.subtotal|floatformat:2 }}</span>
+        </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Delivery</span>
+          <span class="fw-bold" style="color: var(--accent);">
+            {% if total_price >= 499 %}FREE{% else %}₹49{% endif %}
+          </span>
+        </div>
+        <hr style="border-color: var(--border);">
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold fs-5">Total Payable</span>
+          <div class="cart-total">₹{{ total_price|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

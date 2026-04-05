@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% comment %}
+  admin_panel.html - Admin Product Management
+  =============================================
+  Admin can view, edit, and delete all products from here.
+  Only staff users can access this page.
+{% endcomment %}
+
+{% block title %}Admin Panel - ShopZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Header -->
+  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3 mb-5">
+    <div>
+      <h1 class="fw-bold" style="font-size: 3.5rem; letter-spacing: -2px;">Admin <span style="color: var(--accent);">Panel</span></h1>
+      <p class="text-muted fs-5">Manage your inventory and track products.</p>
+    </div>
+    <a href="{% url 'add_product' %}" class="btn-primary-custom" style="padding: 16px 32px; border-radius: 12px;">
+      <i class="bi bi-plus-lg me-2"></i>New Product
+    </a>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-3">
+      <div class="p-4 rounded-4" style="background: white; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div class="fw-bold" style="font-size: 2rem; color: var(--primary);">{{ products|length }}</div>
+        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">
+           <i class="bi bi-box-seam me-2"></i> Products
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-4 rounded-4" style="background: white; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div class="fw-bold" style="font-size: 2rem; color: var(--accent);">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">
+           <i class="bi bi-person-check me-2"></i> Active
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-4 rounded-4" style="background: white; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div class="fw-bold" style="font-size: 2rem; color: var(--primary);"><i class="bi bi-database"></i></div>
+        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Storage</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-4 rounded-4" style="background: white; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div class="fw-bold" style="font-size: 2rem; color: var(--secondary);"><i class="bi bi-gem"></i></div>
+        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Premium</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Table -->
+  {% if products %}
+  <div class="admin-table">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">{{ forloop.counter }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ product.image_url|default:'/static/images/default-product.png' }}" 
+                   alt="{{ product.name }}"
+                   style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px;"
+                   onerror="this.src='/static/images/default-product.png';">
+              <div>
+                <div class="fw-bold">{{ product.name }}</div>
+                <div class="text-muted" style="font-size: 0.8rem;">
+                  {{ product.description|truncatechars:40 }}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="product-category-badge">{{ product.category|default:"General" }}</span>
+          </td>
+          <td>
+            <span style="color: var(--accent); font-weight: 700;">₹{{ product.price }}</span>
+          </td>
+          <td>
+            {% if product.stock %}
+              {% if product.stock > 10 %}
+                <span style="color: var(--accent);">{{ product.stock }}</span>
+              {% elif product.stock > 0 %}
+                <span style="color: #ffc107;">⚠️ {{ product.stock }}</span>
+              {% else %}
+                <span style="color: #ff6b81;">Out of Stock</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{% url 'product_detail' product.id %}"
+                 class="btn-secondary-custom p-0 d-flex align-items-center justify-content-center" 
+                 style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'edit_product' product.id %}"
+                 class="btn-primary-custom p-0 d-flex align-items-center justify-content-center" 
+                 style="width: 36px; height: 36px; border-radius: 8px;">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="{% url 'delete_product' product.id %}"
+                    onsubmit="return confirm('Confirm deletion of: {{ product.name|escapejs }}?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger-custom p-0 d-flex align-items-center justify-content-center" 
+                        style="width: 36px; height: 36px; border-radius: 8px;">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon" style="font-size: 5rem; color: var(--primary);"><i class="bi bi-box-seam"></i></div>
+    <h3 class="mb-3">No Products Yet</h3>
+    <p class="text-muted mb-4">Add your first product to get started!</p>
+    <a href="{% url 'add_product' %}" class="btn-primary-custom" style="padding: 14px 32px;">
+      <i class="bi bi-plus-circle me-2"></i>Add First Product
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

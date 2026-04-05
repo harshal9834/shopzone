@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Order Placed Successfully! - ShopZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <div class="product-detail-card fade-in">
+
+        <!-- Success Icon -->
+        <div style="font-size: 5rem; margin-bottom: 24px; animation: pulse 2s infinite;">✅</div>
+
+        <h1 class="fw-bold mb-3" style="font-size: 2.2rem;">
+          Order Placed! 🎉
+        </h1>
+        <p class="text-muted mb-4" style="font-size: 1.1rem;">
+          Thank you, <strong class="text-gradient">{{ request.user.username }}</strong>!
+          Your order has been placed successfully.
+          <br><br>
+          We'll deliver your items within <strong>3-5 business days</strong>.
+          Payment is <strong>Cash on Delivery</strong>.
+        </p>
+
+        <!-- Order Info Card -->
+        <div class="mb-4 p-4" style="background: rgba(67,233,123,0.1); border-radius: 12px; border: 1px solid rgba(67,233,123,0.3);">
+          <p class="text-muted mb-2">Order ID</p>
+          <p class="fw-bold" style="color: var(--accent); font-size: 1.1rem;">
+            #SZ{{ request.user.id }}{{ "now"|date:"YmdHi" }}
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <a href="{% url 'home' %}" class="btn-primary-custom" style="padding: 14px 32px;">
+            <i class="bi bi-shop me-2"></i>Continue Shopping
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

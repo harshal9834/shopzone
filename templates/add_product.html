@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% comment %}
+  add_product.html - Add / Edit Product (Admin)
+  ===============================================
+  Same template used for both ADD and EDIT product.
+  The 'action' variable determines the mode.
+{% endcomment %}
+
+{% block title %}{{ action }} Product - ShopZone Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <!-- Header -->
+      <div class="page-header mb-5 text-center">
+        <h1 class="fw-bold" style="font-size: 3.5rem; letter-spacing: -2px;">
+          {% if action == 'Add' %}
+            New <span style="color: var(--accent);">Product</span>
+          {% else %}
+            Update <span style="color: var(--accent);">Product</span>
+          {% endif %}
+        </h1>
+        <p class="text-muted fs-5">
+          {% if action == 'Add' %}
+            Create a stunning new listing for your store.
+          {% else %}
+            Refine your product details for your customers.
+          {% endif %}
+        </p>
+      </div>
+
+      <!-- Product Form Card -->
+      <div class="product-detail-card fade-in">
+        <form method="POST" id="productForm" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Product Name -->
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.name.id_for_label }}">
+              <i class="bi bi-tag me-1"></i> Product Name *
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Category -->
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.category.id_for_label }}">
+              <i class="bi bi-grid me-1"></i> Category *
+            </label>
+            {{ form.category }}
+          </div>
+
+          <!-- Price and Stock (Side by Side) -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.price.id_for_label }}">
+                <i class="bi bi-currency-rupee me-1"></i> Price (₹) *
+              </label>
+              {{ form.price }}
+              {% if form.price.errors %}
+                <div class="text-danger small mt-1">{{ form.price.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.stock.id_for_label }}">
+                <i class="bi bi-boxes me-1"></i> Stock Quantity *
+              </label>
+              {{ form.stock }}
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.description.id_for_label }}">
+              <i class="bi bi-text-left me-1"></i> Description *
+            </label>
+            {{ form.description }}
+          </div>
+
+          <!-- Product Photo -->
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.image.id_for_label }}">
+              <i class="bi bi-camera me-1"></i> Product Photo (Take or Upload)
+            </label>
+            {{ form.image }}
+            <div class="text-muted small mt-1">
+              Select an image file (JPG, PNG) or take a photo if on mobile.
+            </div>
+            {% if form.image.errors %}
+              <div class="text-danger small mt-1">{{ form.image.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Image Preview -->
+          <div class="mb-4" id="imagePreviewContainer" style="display: none;">
+            <label class="form-label">Image Preview</label>
+            <img id="imagePreview" src=""
+                 style="max-height: 200px; border-radius: 12px; object-fit: cover; max-width: 100%">
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex gap-3">
+            <button type="submit" class="btn-primary-custom flex-fill py-3" style="border-radius: 12px;">
+              {% if action == 'Add' %}
+                List Product
+              {% else %}
+                Save Changes
+              {% endif %}
+            </button>
+            <a href="{% url 'admin_panel' %}" class="btn-secondary-custom py-3 px-4" style="border-radius: 12px; border: 1px solid var(--border);">
+              Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Live image preview when file is selected
+const fileInput = document.getElementById('{{ form.image.id_for_label }}');
+const previewContainer = document.getElementById('imagePreviewContainer');
+const previewImg = document.getElementById('imagePreview');
+
+if (fileInput) {
+  fileInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewContainer.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      previewContainer.style.display = 'none';
+    }
+  });
+
+  // Show existing image if in edit mode (from MongoDB image_url)
+  {% if product.image_url %}
+    previewImg.src = "{{ product.image_url }}";
+    previewContainer.style.display = 'block';
+  {% endif %}
+}
+</script>
+{% endblock %}

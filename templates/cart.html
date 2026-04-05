@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% comment %}
+  cart.html - Shopping Cart Page
+  ================================
+  Shows all items the user has added to cart.
+  Users can remove items or proceed to checkout.
+{% endcomment %}
+
+{% block title %}My Cart - ShopZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Page Header -->
+  <div class="page-header mb-5">
+    <h1 class="fw-bold" style="font-size: 3.5rem; letter-spacing: -2px;">Your <span style="color: var(--accent);">Bag</span></h1>
+    <p class="text-muted fs-5">
+      {{ cart_count }} item{{ cart_count|pluralize }} ready for checkout
+    </p>
+  </div>
+
+  {% if cart_items %}
+  <div class="row gap-4 flex-lg-row flex-column-reverse">
+
+    <!-- Cart Items List -->
+    <div class="col-lg-8">
+      {% for item in cart_items %}
+      <div class="cart-item fade-in">
+
+        <!-- Product Image -->
+        <div class="cart-item-img" style="background: white; border: 1px solid var(--border);">
+          <img src="{{ item.product.image_url|default:'/static/images/default-product.png' }}" 
+               alt="{{ item.product.name }}"
+               style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
+               onerror="this.src='/static/images/default-product.png';">
+        </div>
+
+        <!-- Product Info -->
+        <div class="flex-grow-1">
+          <a href="{% url 'product_detail' item.product.id %}"
+             style="text-decoration: none;">
+            <h5 class="fw-bold mb-1 text-dark">{{ item.product.name }}</h5>
+          </a>
+          <span class="product-category-badge">{{ item.product.category|default:"General" }}</span>
+          <div class="mt-2">
+            <span class="text-muted small">Unit Price: </span>
+            <span class="fw-bold" style="color: var(--accent);">₹{{ item.product.price }}</span>
+          </div>
+        </div>
+
+        <!-- Quantity & Subtotal -->
+        <div class="text-end" style="min-width: 120px;">
+          <div class="text-muted small mb-1" style="letter-spacing: 1px; text-transform: uppercase;">Subtotal</div>
+          <div class="fw-bold fs-4">₹{{ item.subtotal|floatformat:2 }}</div>
+          <div class="text-muted small mt-1">
+            Qty: {{ item.quantity }}
+          </div>
+        </div>
+
+        <!-- Remove Button -->
+        <div>
+          <form method="POST" action="{% url 'remove_from_cart' item.cart_id %}"
+                onsubmit="return confirm('Remove this item from cart?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger-custom" style="padding: 8px 16px; font-size: 0.85rem;">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </form>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-lg">
+      <div class="cart-summary-card">
+        <h4 class="fw-bold mb-4">Order Summary</h4>
+
+        <div class="d-flex justify-content-between mb-3">
+          <span class="text-muted">Subtotal</span>
+          <span class="fw-bold">₹{{ total_price|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <span class="text-muted">Delivery</span>
+          <span class="fw-bold" style="color: var(--accent);">
+            {% if total_price >= 499 %}FREE{% else %}₹49{% endif %}
+          </span>
+        </div>
+        <hr style="border-color: var(--border);">
+        <div class="d-flex justify-content-between mb-4 mt-2">
+          <span class="fw-bold fs-4">Total</span>
+          <div class="cart-total fw-bold" style="font-size: 2.5rem; color: var(--primary);">
+            ₹{{ total_price|floatformat:2 }}
+          </div>
+        </div>
+
+        {% if free_delivery_diff > 0 %}
+        <div class="mb-4 p-3" style="background: rgba(237, 207, 93, 0.1); border-radius: 8px; border: 1px solid rgba(237, 207, 93, 0.3);">
+          <small class="text-dark">
+            <i class="bi bi-truck me-2"></i> Add ₹{{ free_delivery_diff|floatformat:0 }} more for FREE delivery!
+          </small>
+        </div>
+        {% endif %}
+
+        <a href="{% url 'checkout' %}" class="btn-success-custom w-100 text-center py-3">
+          <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+        </a>
+
+        <a href="{% url 'home' %}" class="btn-secondary-custom w-100 text-center py-3 mt-3">
+          <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  {% else %}
+  <!-- Empty Cart State -->
+  <div class="empty-state">
+    <div class="empty-state-icon" style="font-size: 5rem; color: var(--primary);"><i class="bi bi-cart-x"></i></div>
+    <h3 class="mb-3">Your cart is empty</h3>
+    <p class="text-muted mb-4">
+      Looks like you haven't added anything to your cart yet.
+    </p>
+    <a href="{% url 'home' %}" class="btn-primary-custom" style="padding: 14px 40px; font-size: 1rem;">
+      <i class="bi bi-shop me-2"></i>Start Shopping
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,7 +1,25 @@
-Django==4.2
-Pillow==12.1.0
-psycopg2-binary==2.9.9
-dj-database-url==2.1.0
-python-dotenv==1.0.0
-gunicorn==21.2.0
-whitenoise==6.6.0
+# ============================================================
+# requirements.txt - Python Dependencies
+# ============================================================
+# Install all with: pip install -r requirements.txt
+
+# Django - Web Framework
+Django==5.0.4
+
+# pymongo - Official MongoDB Python Driver
+pymongo==4.7.2
+
+# dnspython - Required for MongoDB Atlas (mongodb+srv:// URLs)
+dnspython==2.6.1
+
+# django-environ - Reads .env files into Django settings
+django-environ==0.11.2
+
+# Pillow - Image processing (for image fields)
+Pillow==10.3.0
+
+# gunicorn - WSGI HTTP Server for production deployment
+gunicorn==22.0.0
+
+# whitenoise - Serve static files in production (Vercel-friendly)
+whitenoise==6.7.0
